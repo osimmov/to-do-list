@@ -105,15 +105,48 @@
     }
   
     async function initTaskApp({
-      inputSelector = "#task-input",
-      addBtnSelector = "#add-btn",
-      filterSelector = "#filter",
-      listSelector = "#task-list",
-      templateSelector = "#task-item-template",
-      dueSelector = "#task-due",
-      onReady,
-    } = {}) {
-      el.input = document.querySelector(inputSelector);
-      el.addBtn = document.querySelector(addBtnSelector);
-      el.filter = docu
-  
+        inputSelector = "#task-input",
+        addBtnSelector = "#add-btn",
+        filterSelector = "#filter",
+        listSelector = "#task-list",
+        templateSelector = "#task-item-template",
+        dueSelector = "#task-due",
+        onReady,
+      } = {}) {
+        el.input = document.querySelector(inputSelector);
+        el.addBtn = document.querySelector(addBtnSelector);
+        el.filter = document.querySelector(filterSelector);
+        el.list = document.querySelector(listSelector);
+        el.template = document.querySelector(templateSelector);
+        el.due = document.querySelector(dueSelector);
+      
+        el.form = document.getElementById("new-task-form");
+        el.form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const title = el.input.value || "";
+          if (!title.trim()) return;
+          addTask(title, el.due?.value);
+          el.input.value = "";
+          if (el.due) el.due.value = "";
+          el.input.focus();
+        });
+      
+        el.addBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          const title = el.input.value || "";
+          if (!title.trim()) return;
+          addTask(title, el.due?.value);
+          el.input.value = "";
+          if (el.due) el.due.value = "";
+          el.input.focus();
+        });
+      
+        el.filter?.addEventListener("change", render);
+      
+        tasks = await storage.load();
+        render();
+        onReady && onReady({ addTask, deleteTask, toggleTask });
+      }
+      global.TaskApp = { init: initTaskApp, addTask, deleteTask, toggleTask };
+    })(window);
+     
