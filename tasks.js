@@ -1,119 +1,95 @@
-(function (global) {
-    const STORAGE_KEY = "todo.tasks.v1";
+const TaskApp = (() => {
+  let taskList, form, input, dueInput, filter;
+  let tasks = [];
   
-    const storage = {
-      async load() {
-        try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          return raw ? JSON.parse(raw) : [];
-        } catch {
-          return [];
-        }
-      },
-      async save(tasks) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-      },
+  function loadTasks() {
+    const saved = localStorage.getItem("tasks");
+    tasks = saved ? JSON.parse(saved) : [];
+  }
+
+  function saveTasks() {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }
+
+  function render() {
+    taskList.innerHTML = "";
+
+    const filterValue = filter.value;
+    let visibleTasks = tasks;
+
+    if (filterValue === "active") {
+      visibleTasks = tasks.filter(t => !t.completed);
+    } else if (filterValue === "completed") {
+      visibleTasks = tasks.filter(t => t.completed);
+    }
+
+    visibleTasks.forEach(task => {
+      const template = document.getElementById("task-item-template");
+      const li = template.content.cloneNode(true);
+
+      const checkbox = li.querySelector(".toggle");
+      const title = li.querySelector(".title");
+      const meta = li.querySelector(".meta");
+      const delBtn = li.querySelector(".delete");
+
+      title.textContent = task.title;
+      meta.textContent = task.due ? `Due: ${task.due}` : "";
+
+      if (task.completed) {
+        checkbox.checked = true;
+        title.classList.add("completed");
+      }
+
+      checkbox.addEventListener("change", () => {
+        task.completed = checkbox.checked;
+        saveTasks();
+        render();
+      });
+
+      delBtn.addEventListener("click", () => {
+        tasks = tasks.filter(t => t.id !== task.id);
+        saveTasks();
+        render();
+      });
+
+      taskList.appendChild(li);
+    });
+  }
+
+  function addTask(title, due) {
+    const newTask = {
+      id: Date.now(),
+      title,
+      due,
+      completed: false
     };
-  
-    let tasks = [];
-    let el = {};
-  
-    const uid = () =>
-      (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now() + Math.random());
-  
-    function isoStartOfDay(dateStr) {
-      return dateStr ? new Date(dateStr + "T00:00:00").toISOString() : undefined;
-    }
-  
-    async function addTask(title, dueStr) {
-      const t = {
-        id: uid(),
-        title: title.trim(),
-        completed: false,
-        createdAt: new Date().toISOString(),
-        dueAt: isoStartOfDay(dueStr),
-        completedAt: undefined,
-      };
-      tasks.push(t);
-      await storage.save(tasks);
-      render();
-    }
-  
-    async function deleteTask(id) {
-      tasks = tasks.filter(t => t.id !== id);
-      await storage.save(tasks);
-      render();
-    }
-  
-    async function toggleTask(id) {
-      tasks = tasks.map(t => t.id === id
-        ? { ...t, completed: !t.completed, completedAt: !t.completed ? new Date().toISOString() : undefined }
-        : t
-      );
-      await storage.save(tasks);
-      render();
-    }
-  
-    function filtered() {
-      const f = el.filter?.value || "all";
-      if (f === "active") return tasks.filter(t => !t.completed);
-      if (f === "completed") return tasks.filter(t => t.completed);
-      return tasks;
-    }
-  
-    function formatMeta(t) {
-      const parts = [];
-      if (t.dueAt) {
-        const due = new Date(t.dueAt);
-        const today = new Date();
-        const midnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        const overdue = due < midnight && !t.completed;
-        parts.push(`${overdue ? "Overdue" : "Due"}: ${due.toLocaleDateString()}`);
-      }
-      if (t.completedAt) parts.push(`Completed: ${new Date(t.completedAt).toLocaleString()}`);
-      return parts.join(" • ");
-    }
-  
-    function render() {
-      el.list.innerHTML = "";
-      for (const t of filtered()) {
-        const node = el.template?.content?.firstElementChild?.cloneNode(true) ?? (() => {
-          const li = document.createElement("li");
-          li.className = "task";
-          li.innerHTML = `
-            <label><input class="toggle" type="checkbox" /><span class="title"></span></label>
-            <span class="meta"></span>
-            <button class="delete">🗑</button>`;
-          return li;
-        })();
-  
-        const checkbox = node.querySelector(".toggle");
-        const title = node.querySelector(".title");
-        const meta = node.querySelector(".meta");
-        const del = node.querySelector(".delete");
-  
-        checkbox.checked = t.completed;
-        title.textContent = t.title;
-        title.classList.toggle("completed", t.completed);
-        meta.textContent = formatMeta(t);
-  
-        checkbox.addEventListener("change", () => toggleTask(t.id));
-        del.addEventListener("click", () => deleteTask(t.id));
-  
-        el.list.appendChild(node);
-      }
-    }
-  
-    async function initTaskApp({
-      inputSelector = "#task-input",
-      addBtnSelector = "#add-btn",
-      filterSelector = "#filter",
-      listSelector = "#task-list",
-      templateSelector = "#task-item-template",
-      dueSelector = "#task-due",
-      onReady,
-    } = {}) {
-      el.input = document.querySelector(inputSelector);
-      el.addBtn = document.querySelector(addBtnSelector);
-      el.filter = docu
-  
+    tasks.push(newTask);
+    saveTasks();
+    render();
+  }
+
+  function init() {
+    taskList = document.getElementById("task-list");
+    form = document.getElementById("new-task-form");
+    input = document.getElementById("task-input");
+    dueInput = document.getElementById("task-due");
+    filter = document.getElementById("filter");
+
+    loadTasks();
+    render();
+
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const title = input.value.trim();
+      if (!title) return;
+
+      addTask(title, dueInput.value);
+      input.value = "";
+      dueInput.value = "";
+    });
+
+    filter.addEventListener("change", render);
+  }
+
+  return { init };
+})();
