@@ -7,3 +7,10 @@ The goal is to create a task management system that can be accessed from the web
 
 
 ## Features
+- Add new tasks with optional due dates  
+- Delete tasks  
+- Mark tasks as complete/incomplete  
+- View active, completed, or all tasks  
+- Track overdue tasks based on due date  
+- Store task history with timestamps  
+- Backend API in Python serving JSON responses 
