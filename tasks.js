@@ -35,6 +35,13 @@ const TaskApp = (() => {
       title.textContent = task.title;
       meta.textContent = task.due ? `Due: ${task.due}` : "";
 
+      if (task.due && new Date(task.due) < new Date() && !task.completed) {
+        meta.style.color = "red"; 
+      } 
+      else {
+        meta.style.color = ""; 
+      }
+
       if (task.completed) {
         checkbox.checked = true;
         title.classList.add("completed");
