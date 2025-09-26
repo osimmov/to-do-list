@@ -63,5 +63,25 @@ todo-api/
 The API will be running at:
 👉 http://127.0.0.1:5000
 
+11. Run the todo_mcp_server.py with python3 command
 
-# todo-mcp
+12. Go to Claude and start testing the to do list(add, delete, update tasks)
+
+
+## JSON
+Claude is going to save all the tasks for the users in a JSON file called tasks.json
+Tasks look something like this:
+```bash
+ "Aayush": [
+    {
+      "id": 1,
+      "title": "do hw",
+      "due": "today",
+      "completed": true
+    }
+  ]
+```
+
+
+
+

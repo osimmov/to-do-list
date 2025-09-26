@@ -6,25 +6,25 @@ app = Flask(__name__)
 
 TASKS_FILE = "tasks.json"
 
-# Load tasks from file
+# Load tasks
 def load_tasks():
     if os.path.exists(TASKS_FILE):
         with open(TASKS_FILE, "r") as f:
             return json.load(f)
     return {}
 
-# Save tasks to file
+# Save tasks
 def save_tasks(tasks):
     with open(TASKS_FILE, "w") as f:
         json.dump(tasks, f, indent=2)
 
-# Get all tasks for a user
+# Get all tasks
 @app.route("/tasks/<user_id>", methods=["GET"])
 def get_tasks(user_id):
     tasks = load_tasks()
     return jsonify(tasks.get(user_id, []))
 
-# Create a new task
+# Create
 @app.route("/tasks/<user_id>", methods=["POST"])
 def add_task(user_id):
     data = request.json
@@ -42,7 +42,7 @@ def add_task(user_id):
     save_tasks(tasks)
     return jsonify(task), 201
 
-# Update a task
+# Update
 @app.route("/tasks/<user_id>/<int:task_id>", methods=["PUT"])
 def update_task(user_id, task_id):
     data = request.json
@@ -61,7 +61,7 @@ def update_task(user_id, task_id):
 
     return jsonify({"error": "Task not found"}), 404
 
-# Delete a task
+# Delete
 @app.route("/tasks/<user_id>/<int:task_id>", methods=["DELETE"])
 def delete_task(user_id, task_id):
     tasks = load_tasks()
